@@ -13,12 +13,10 @@ from scapy.all import ifaces
 
 MAIN_IMAGE_PATH = './resource/images/main.png'
 
-def hide_info_window(window):
-    window.infos_table.setVisible(False)
-    window.infos_detail_tab.setVisible(False)
+
 
 def init_view(window):
-    hide_info_window(window)
+    window.taggle_info_window(True)
     main_image_obj = QPixmap(MAIN_IMAGE_PATH)
     window.main_image_label.setPixmap(main_image_obj)
     window.main_image_label.setScaledContents(True)  # 让图片自适应label大小
@@ -73,10 +71,14 @@ def update_view_if_infos(window):
         row_number = window.main_if_infos_table.rowCount()
         window.main_if_infos_table.setRowCount(row_number + 1)
 
-        row_obj = window.main_if_infos_table
+        table = window.main_if_infos_table
         items = ['index', 'name', 'MAC', 'ipv4', 'ipv6']
         for index, item in enumerate(items):
-            row_obj.setItem(row_number, index, QTableWidgetItem(if_info[item]))
+            table.setItem(row_number, index, QTableWidgetItem(if_info[item]))
+
+def update_double_clicked_event(window):
+    table = window.main_if_infos_table
+    table.itemDoubleClicked.connect(window.main_if_infos_table_doubleClicked)
 
 
 
@@ -87,3 +89,5 @@ def main(window):
     window.if_infos = get_if_infos()
 
     update_view_if_infos(window)
+
+    update_double_clicked_event(window)

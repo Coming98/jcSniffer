@@ -32,6 +32,9 @@ def init_view_main(window):
     # init main_if_infos_table
     init_main_if_infos_table(window, window.main_if_infos_table)
 
+    # init infos_table
+    init_infos_table(window)
+
 def init_main_if_infos_table(window, table):
     table.setColumnHidden(0, True) # 隐藏 index 列
     table.verticalHeader().setVisible(False)  # 隐藏列名
@@ -59,10 +62,15 @@ def init_view_toolbar(window):
 
     startAction = QAction(QIcon(os.path.join(ICON_DIR, 'start')),'Start (Ctrl+B)', window)
     startAction.setShortcut('Ctrl+B')
-    startAction.triggered.connect(lambda : print('Toolbar-Start Success!'))
+    startAction.triggered.connect(window.start_sniff)
     window.toolBar.addAction(startAction)
 
-    startAction = QAction(QIcon(os.path.join(ICON_DIR, 'end')),'Stop (Ctrl+E)', window)
-    startAction.setShortcut('Ctrl+B')
-    startAction.triggered.connect(lambda : print('Toolbar-End Success!'))
-    window.toolBar.addAction(startAction)
+    endAction = QAction(QIcon(os.path.join(ICON_DIR, 'end')),'Stop (Ctrl+E)', window)
+    endAction.setShortcut('Ctrl+E')
+    endAction.triggered.connect(window.end_sniff)
+    window.toolBar.addAction(endAction)
+
+def init_infos_table(window):
+    table = window.infos_table
+    table.verticalHeader().setVisible(False)  # 隐藏列名
+    table.horizontalHeader().setStretchLastSection(True) # 设置最后一列拉伸至最大
