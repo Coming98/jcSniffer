@@ -7,19 +7,9 @@
 @Department   :   INSTITUTE OF INFORMATION ENGINEERING, CAS
 @Desc         :   
 '''
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QTableWidgetItem
 from scapy.all import ifaces
 
-MAIN_IMAGE_PATH = './resource/images/main.png'
-
-
-
-def init_view(window):
-    window.taggle_info_window(True)
-    main_image_obj = QPixmap(MAIN_IMAGE_PATH)
-    window.main_image_label.setPixmap(main_image_obj)
-    window.main_image_label.setScaledContents(True)  # 让图片自适应label大小
 
 def try_get_content(data, index, default):
     try:
@@ -42,7 +32,6 @@ def get_contents(line):
 
 def get_if_infos():
     info_lines = str(ifaces).split('\n')
-
 
     if_infos = []
     for line in info_lines[1:]:
@@ -83,11 +72,12 @@ def update_double_clicked_event(window):
 
 
 def main(window):
-
-    init_view(window)
-
+    
+    # 获取网卡信息
     window.if_infos = get_if_infos()
 
+    # 显示信息
     update_view_if_infos(window)
 
+    # 绑定双击选定网卡事件
     update_double_clicked_event(window)

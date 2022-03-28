@@ -8,69 +8,120 @@
 @Desc         :   Initialization window interface processing
 '''
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QPixmap
 from PyQt5.QtWidgets import QAction, QHeaderView, QAbstractItemView, QFrame
 import os
+import sys
+sys.path.append('../')
 
 ICON_DIR = './resource/icon'
+MAIN_IMAGE_PATH = './resource/images/main.png'
 
 
-def init_view_main(window):
+def taggle_info_window(window, visible):
 
-    # bgcolor
-    window.setStyleSheet("#MainWindow{background-color: white}") 
-    window.main_header_label.setAlignment(Qt.AlignCenter)
-    window.main_footer_text.setStyleSheet("QTextBrowser{border-width:0;border-style:outset}") 
+    window.main_image_label.setVisible(visible)
+    window.main_header_label.setVisible(visible)
+    window.main_if_infos_table.setVisible(visible)
+    window.main_footer_text.setVisible(visible)
 
+    window.packet_items_table.setVisible(not visible)
+    window.packet_detail_tab.setVisible(not visible)
 
-    # init size
-    window.resize(1867, 1198)
-    
-    # init toolbar
-    init_view_toolbar(window)
+################ ↓ Welcome ###########################
 
-    # init main_if_infos_table
-    init_main_if_infos_table(window, window.main_if_infos_table)
-
-    # init infos_table
-    init_infos_table(window)
-
-def init_main_if_infos_table(window, table):
-    table.setColumnHidden(0, True) # 隐藏 index 列
+# packet_items_table
+def init_welcome_packet_items_table(window):
+    table = window.packet_items_table
     table.verticalHeader().setVisible(False)  # 隐藏列名
-    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch) # 自适应宽度
-    table.horizontalHeader().setSectionsClickable(False) # 禁止点击表头
-    table.setSelectionBehavior(QAbstractItemView.SelectRows) # 只能选择一行
-    table.setEditTriggers(QAbstractItemView.NoEditTriggers) # 不可更改
+    table.horizontalHeader().setStretchLastSection(True)  # 设置最后一列拉伸至最大
+
+# main_if_infos_table
+def init_welcome_main_if_infos_table(window):
+    table = window.main_if_infos_table
+    table.setColumnHidden(0, True)  # 隐藏 index 列
+    table.verticalHeader().setVisible(False)  # 隐藏列名
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 自适应宽度
+    table.horizontalHeader().setSectionsClickable(False)  # 禁止点击表头
+    table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 只能选择一行
+    table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 不可更改
     font = QFont('微软雅黑', 14)
     font.setBold(True)
     table.horizontalHeader().setFont(font)  # 设置表头字体
-    table.horizontalHeader().setStyleSheet('QHeaderView::section{background:gray; color:white}')
+    table.horizontalHeader().setStyleSheet(
+        'QHeaderView::section{background:gray; color:white}')
     table.setAlternatingRowColors(True)
     table.setFrameStyle(QFrame.NoFrame)
     table.setStyleSheet('gridline-color:white;'
-                'border:0px solid gray')
-    # # Hover 一行的效果
-    # table.setMouseTracking(True)
-    # window.main_if_infos_table_cur_hover_row = 0
-    # table.cellEntered.connect(window.main_if_infos_table_cellHover)
+                        'border:0px solid gray')
+    table.itemClicked.connect(window.main_if_infos_table_clicked)
+    table.itemSelectionChanged.connect(window.main_if_infos_table_itemSelectionChanged)
+# main_image_label
+def init_welcome_main_image_label(window):
+    main_image_obj = QPixmap(MAIN_IMAGE_PATH)
+    window.main_image_label.setPixmap(main_image_obj)
+    window.main_image_label.setScaledContents(True)  # 让图片自适应label大小
 
-def init_view_toolbar(window):
-    # 间距
-    window.toolBar.setStyleSheet("QToolBar{spacing:16px;padding-left:12px;}")
+# ToolBar
+def init_welcome_toolbar(window):
 
+    window.toolBar.setStyleSheet(
+        "QToolBar{spacing:16px;padding-left:12px;}")  # 间距
 
-    startAction = QAction(QIcon(os.path.join(ICON_DIR, 'start')),'Start (Ctrl+B)', window)
+    # 开始按钮
+    startAction = QAction(
+        QIcon(os.path.join(ICON_DIR, 'start')), 'Start (Ctrl+B)', window)
     startAction.setShortcut('Ctrl+B')
     startAction.triggered.connect(window.start_sniff)
     window.toolBar.addAction(startAction)
+    startAction.setDisabled(True)
 
-    endAction = QAction(QIcon(os.path.join(ICON_DIR, 'end')),'Stop (Ctrl+E)', window)
+    # 结束按钮
+    endAction = QAction(QIcon(os.path.join(ICON_DIR, 'end')),
+                        'Stop (Ctrl+E)', window)
     endAction.setShortcut('Ctrl+E')
     endAction.triggered.connect(window.end_sniff)
     window.toolBar.addAction(endAction)
+    endAction.setDisabled(True)
 
-def init_infos_table(window):
-    table = window.infos_table
-    table.verticalHeader().setVisible(False)  # 隐藏列名
-    table.horizontalHeader().setStretchLastSection(True) # 设置最后一列拉伸至最大
+
+    # 退出按钮
+    quitAction = QAction(QIcon(os.path.join(ICON_DIR, 'quit')),
+                        'Quit (Ctrl+Q)', window)
+    quitAction.setShortcut('Ctrl+Q')
+    quitAction.triggered.connect(window.quit)
+    window.toolBar.addAction(quitAction)
+    quitAction.setDisabled(True)
+
+    # print(dir(window.toolBar))
+
+# MainWindow
+def init_welcome_mainwindow(window):
+    window.setStyleSheet("#MainWindow{background-color: white}")  # 背景色
+    window.main_header_label.setAlignment(Qt.AlignCenter)  # 欢迎内容剧中
+    window.main_footer_text.setStyleSheet(
+        "QTextBrowser{border-width:0;border-style:outset}")  # 页脚文字去除边框
+    window.resize(1867, 1198)  # resize
+
+
+def init_welcome(window):
+
+    # MainWindow
+    init_welcome_mainwindow(window)
+
+    # ToolBar
+    init_welcome_toolbar(window)
+
+    # main_image_label
+    init_welcome_main_image_label(window)
+
+    # main_if_infos_table
+    init_welcome_main_if_infos_table(window)
+
+    # packet_items_table
+    init_welcome_packet_items_table(window)
+
+    # taggle_info_window
+    taggle_info_window(window, True)
+
+################ ↑ Welcome ###########################

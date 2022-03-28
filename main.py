@@ -9,75 +9,63 @@
 '''
 
 
+from re import T
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtCore import QThread, pyqtSignal
 # from PyQt5.QtGui import QBrush, QColor
 from view.Ui_MainWindow import Ui_MainWindow
-from view.init_view import init_view_main
+from view import init_view
 from work_flow import analysis_packet, handle_packet_items, show_networks
-
-import scapy
-from scapy.all import *
+from work_flow import config
+from Sniff import SniffThread
 import sys
 
 
-class SnifferWindow(Ui_MainWindow, QMainWindow):
+class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
     def __init__(self):
-        super(SnifferWindow, self).__init__()
+        super(JCSnifferWindow, self).__init__()
         self.setupUi(self)
 
-        self.if_name = None  # 网卡的 id, 用于捕获数据包
-        self.packet_items = [] # 捕获的数据包
-        self.start_time = None # 捕获第一个数据包的时间戳
-        self.status_message_pattern = '{if_name} | {status}'
+        self.config_path = './config.json'
+
         # 初始化界面
-        init_view_main(self)
+        init_view.init_welcome(self)
+
+        # 初始化配置参数
+        config.init_config(self)
 
         # 欢迎界面 选择网卡
         show_networks.main(self)
 
-    def main_if_infos_table_doubleClicked(self, item):
-        # print(dir(item))
-        # print(item.column())
-        # print(item.data(0))
-        # if_index = table.takeItem(row, 0)
 
-        table = self.main_if_infos_table
-        row = item.row()
-        self.if_name = table.item(row, 1).text()
 
-        # 进入捕获界面
-        self.main_if_infos_table.hide()
-        self.taggle_info_window(False)
-
-        # 状态栏信息
-        self.statusBar().showMessage(self.status_message_pattern.format(if_name=self.if_name, status='等待捕获开始...'))
-
-    def taggle_info_window(self, visible):
-
-        self.main_image_label.setVisible(visible)
-        self.main_header_label.setVisible(visible)
-        self.main_if_infos_table.setVisible(visible)
-        self.main_footer_text.setVisible(visible)
-
-        self.infos_table.setVisible(not visible)
-        self.infos_detail_tab.setVisible(not visible)
+    
 
     def start_sniff(self):
-        self.statusBar().showMessage(self.status_message_pattern.format(if_name=self.if_name, status='捕获正在进行 ...'))
-        # * 获取 filter 信息
+        # 获取 filter 信息
+        pass
 
-        # *
         self.sniffThread = SniffThread("", self.if_name)
         self.sniffThread.HandleSignal.connect(self.display)
         self.sniffThread.start()
 
-    def end_sniff(self):
-        self.statusBar().showMessage(self.status_message_pattern.format(if_name=self.if_name, status='捕获停止'))
+        self.statusBar().showMessage(f"{self.if_name} | 捕获正在进行 ...")
 
+        # ToolBar
+        self.toolBar.actions()[0].setEnabled(False)
+        self.toolBar.actions()[1].setEnabled(True)
+        self.toolBar.actions()[2].setEnabled(False)
+
+
+    def end_sniff(self):
         self.sniffThread.terminate()
+        self.statusBar().showMessage(f"{self.if_name} | 捕获停止")
+        # ToolBar
+        self.toolBar.actions()[0].setEnabled(True)
+        self.toolBar.actions()[1].setEnabled(False)
+        self.toolBar.actions()[2].setEnabled(True)
 
     def display(self, packet):
 
@@ -94,49 +82,56 @@ class SnifferWindow(Ui_MainWindow, QMainWindow):
         packet_infos['No.'] = str(packet_number)
         packet_infos['Time'] = f'{packet_time - self.start_time:.6f}'
         
-
         self.packet_items.append(packet_infos)
 
         handle_packet_items.show(self)
 
-
-    # def main_if_infos_table_cellHover(self, row, _):
-    #     table = self.main_if_infos_table
-    #     column_count = table.columnCount()
-
-    #     cur_row = row
-    #     old_row = self.main_if_infos_table_cur_hover_row
-
-    #     cur_items = [table.item(cur_row, idx) for idx in range(column_count)]
-    #     old_items = [table.item(old_row, idx) for idx in range(column_count)]
-
-    #     if cur_row != old_row:
-    #         for item in old_items:
-    #             item.setBackground(QBrush(QColor('white')))
-    #         for item in cur_items:
-    #             item.setBackground(QBrush(QColor('steelblue')))
-
-    #     self.main_if_infos_table_cur_hover_row = cur_row
+        self.statusBar().showMessage(f"{self.if_name} | 捕获正在进行 ... || 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()}||")
 
 
-class SniffThread(QThread):
-    HandleSignal = pyqtSignal(scapy.layers.l2.Ether)
+    ################### Events
 
-    def __init__(self, filter, if_name):
-        super().__init__()
-        self.filter = filter
-        self.if_name = if_name
+    def main_if_infos_table_doubleClicked(self, item):
+        table = self.main_if_infos_table
+        row = item.row()
+        self.if_name = table.item(row, 1).text()
 
-    def run(self):
-        sniff(filter=self.filter, iface=self.if_name,
-              prn=lambda packet: self.HandleSignal.emit(packet))
+        # 进入捕获界面
+        init_view.taggle_info_window(self, False)
 
-    # def pack_callback(self,packet):
-    #     packet.show()
+        # 状态栏信息
+        self.statusBar().showMessage(f"{self.if_name} | 等待捕获开始...")
 
+        # ToolBar
+        self.toolBar.actions()[0].setEnabled(True)
+        self.toolBar.actions()[1].setEnabled(False)
+        self.toolBar.actions()[2].setEnabled(True)
+
+    def main_if_infos_table_clicked(self, item):
+        table = self.main_if_infos_table
+        row = item.row()
+        self.if_name = table.item(row, 1).text()
+
+        # 状态栏信息
+        self.statusBar().showMessage(f"{self.if_name}")
+
+    def main_if_infos_table_itemSelectionChanged(self):
+        if(not self.main_if_infos_table.currentItem().isSelected()):
+            self.statusBar().showMessage("")
+
+
+    def quit(self):
+        init_view.taggle_info_window(self, True)
+        self.if_name == None
+        self.statusBar().showMessage("")
+
+        # ToolBar
+        self.toolBar.actions()[0].setEnabled(False)
+        self.toolBar.actions()[1].setEnabled(False)
+        self.toolBar.actions()[2].setEnabled(False)
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    snifferWindow = SnifferWindow()
+    snifferWindow = JCSnifferWindow()
     snifferWindow.show()
     sys.exit(app.exec_())

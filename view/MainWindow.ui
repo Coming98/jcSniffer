@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>753</width>
+    <width>1392</width>
     <height>642</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1392</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -32,7 +38,7 @@
      </spacer>
     </item>
     <item row="6" column="0" colspan="2">
-     <widget class="QTableWidget" name="infos_table">
+     <widget class="QTableWidget" name="packet_items_table">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -176,7 +182,7 @@ p, li { white-space: pre-wrap; }
      </widget>
     </item>
     <item row="7" column="0" colspan="2">
-     <widget class="QTabWidget" name="infos_detail_tab">
+     <widget class="QTabWidget" name="packet_detail_tab">
       <property name="currentIndex">
        <number>4</number>
       </property>
@@ -186,7 +192,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QTreeWidget" name="infos_detail_application_tree">
+         <widget class="QTreeWidget" name="packet_detail_application_tree">
           <column>
            <property name="text">
             <string/>
@@ -202,7 +208,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QTreeWidget" name="infos_detail_transport_tree">
+         <widget class="QTreeWidget" name="packet_detail_transport_tree">
           <column>
            <property name="text">
             <string/>
@@ -218,7 +224,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QTreeWidget" name="infos_detail_network_tree">
+         <widget class="QTreeWidget" name="packet_detail_network_tree">
           <column>
            <property name="text">
             <string/>
@@ -234,7 +240,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QTreeWidget" name="infos_detail_datalink_tree">
+         <widget class="QTreeWidget" name="packet_detail_datalink_tree">
           <column>
            <property name="text">
             <string/>
@@ -250,7 +256,7 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <widget class="QTreeWidget" name="infos_detail_physical_tree">
+         <widget class="QTreeWidget" name="packet_detail_physical_tree">
           <column>
            <property name="text">
             <string/>
@@ -318,7 +324,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>753</width>
+     <width>1392</width>
      <height>22</height>
     </rect>
    </property>

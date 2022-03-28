@@ -18,7 +18,30 @@ class TableViewer(QMainWindow):
         self.table.cellEntered.connect(self.cellHover)
 
 
+# def main_if_infos_table_cellHover(self, row, _):
+#     table = self.main_if_infos_table
+#     column_count = table.columnCount()
 
+#     cur_row = row
+#     old_row = self.main_if_infos_table_cur_hover_row
+
+#     cur_items = [table.item(cur_row, idx) for idx in range(column_count)]
+#     old_items = [table.item(old_row, idx) for idx in range(column_count)]
+
+#     if cur_row != old_row:
+#         for item in old_items:
+#             item.setBackground(QBrush(QColor('white')))
+#         for item in cur_items:
+#             item.setBackground(QBrush(QColor('steelblue')))
+
+#     self.main_if_infos_table_cur_hover_row = cur_row
+
+
+
+# # Hover 一行的效果
+# table.setMouseTracking(True)
+# window.main_if_infos_table_cur_hover_row = 0
+# table.cellEntered.connect(window.main_if_infos_table_cellHover)
 
 if __name__ == '__main__':
     import sys
