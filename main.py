@@ -45,6 +45,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         # self.adjustSize()
         # print(self.baseSize())
 
+
     def start_sniff(self):
         # 获取 filter 信息
         pass
@@ -79,6 +80,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
         # col. Source, Destinaiton, Protocol, Length, Info
         packet_infos = analysis_packet.main(packet)
+        if(packet_infos == None): return
 
         packet_infos['No.'] = str(packet_number)
         packet_infos['Time'] = f'{packet_time - self.start_time:.6f}'
@@ -110,6 +112,8 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.toolBar.actions()[2].setEnabled(True)
 
     def main_if_infos_table_clicked(self, item):
+        # print(self.packet_detail_tab.count())
+        # print(dir(self.tab_application.setHidden()))
         table = self.main_if_infos_table
         row = item.row()
         self.if_name = table.item(row, 1).text()
@@ -122,12 +126,14 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
             self.statusBar().showMessage("")
 
     def packet_items_table_clicked(self, item):
+        for _ in range(self.packet_detail_tab.count()):
+            self.packet_detail_tab.removeTab(0)
         table = self.packet_items_table
         table = self.packet_items_table
         row = item.row()
         packet_number = table.item(row, 0).text()
         packet = self.packets_dict[packet_number]
-        handle_packet_items.show_packet_detail_tab(self, packet)
+        handle_packet_items.show_packet_detail_tab(self, packet, packet_number)
 
     def quit(self):
         init_view.taggle_info_window(self, True)

@@ -106,6 +106,40 @@ def handleARP(packet):
 
     return infos
 
+def handleIpv6(packet):
+    infos = {
+        'Source': packet['IPv6'].src,
+        'Destinaiton': packet['IPv6'].dst,
+        'Length': len(packet),
+        'Protocol': 'IPv6',
+        'Info': packet.name
+    }
+
+    if(not packet.haslayer('IPv6')): return infos
+
+    infos['Source'] = packet['IPv6'].src
+    infos['Destinaiton'] = packet['IPv6'].dst
+
+    if(packet.haslayer("DNS")):
+        pkt_dns = packet['DNS']
+        if(pkt_dns.qd is None):
+            if(pkt_dns.ar is not None):
+                infos['Info'] = f'Standard query response: {pkt_dns.ar.rrname.decode()}'
+            else:
+                infos['Info'] = f'Standard query response: {pkt_dns.an.rrname.decode()}'
+        else:
+            infos['Info'] = f'Standard query: {pkt_dns.qd.qname.decode()}'
+    return infos
+
+def handleUnknow(packet):
+    infos = {
+        'Source': packet.src,
+        'Destinaiton': packet.dst,
+        'Length': len(packet),
+        'Protocol': hex(packet.type),
+        'Info': packet.name
+    }
+    return infos
 
 def main(packet):
     # 数据链路层: IP or ARP
@@ -113,7 +147,12 @@ def main(packet):
         return handleIP(packet)
     elif(packet.type == 0x806):
         return handleARP(packet)
+    elif(packet.type == 0x86dd):
+        return handleIpv6(packet)
+    elif(packet.type in [0x3200, 0x86dd, 0x1E00]):
+        return handleUnknow(packet)
     else:
         packet.show()
+        print(packet.type)
     
     return None
