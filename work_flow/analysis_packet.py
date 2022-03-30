@@ -1,7 +1,6 @@
 
 
-from struct import pack
-
+from scapy.all import raw
 
 def handleTCP(packet, infos):
     tcp_infos = packet['TCP']

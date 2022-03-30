@@ -18,11 +18,10 @@ def try_get_content(data, index, default):
     except:
         return default
 
-def get_contents(line):
-    idxes = [0, 9, 16, 58, 77, 94, 119]
+def get_contents(line, indexes):
     contents = []
-    for i in range(len(idxes) - 1):
-        raw_content = line[idxes[i]:idxes[i+1]]
+    for i in range(len(indexes) - 1):
+        raw_content = line[indexes[i]:indexes[i+1]]
         content = raw_content.strip()
         
         contents.append('None' if(len(content) == 0) else content)
@@ -32,11 +31,15 @@ def get_contents(line):
 
 def get_if_infos():
     info_lines = str(ifaces).split('\n')
+    ifaces
+    print(info_lines)
 
     if_infos = []
+    indexes = [info_lines[0].index(col_name) for col_name in info_lines[0].split()]
+    indexes.append(len(info_lines[0]))
     for line in info_lines[1:]:
-        contents = get_contents(line)
-        print(contents)
+        contents = get_contents(line, indexes)
+        # print(contents)
         if_info = {
             'source': contents[0],
             'index': contents[1],
@@ -57,13 +60,25 @@ def get_if_infos():
 def update_view_if_infos(window):
     for if_info in window.if_infos:
         if(not if_info['valid']): continue
+        index= if_info['index']
+        content = {
+            'index': index,
+            'name': ifaces.dev_from_index(index).name,
+            'MAC': ifaces.dev_from_index(index).mac,
+            'ipv4': ifaces.dev_from_index(index).ip,
+            'ipv6': ifaces.dev_from_index(index).ips[6]
+        }
+        if(index == '1' or len(content['ipv6']) == 0): continue
+
         row_number = window.main_if_infos_table.rowCount()
         window.main_if_infos_table.setRowCount(row_number + 1)
 
         table = window.main_if_infos_table
-        items = ['index', 'name', 'MAC', 'ipv4', 'ipv6']
+        items = ['index', 'name', 'MAC', 'ipv4']
         for index, item in enumerate(items):
-            table.setItem(row_number, index, QTableWidgetItem(if_info[item]))
+            table.setItem(row_number, index, QTableWidgetItem(content[item]))
+        # ipv6
+        table.setItem(row_number, 4, QTableWidgetItem(content['ipv6'][0]))
 
 def update_double_clicked_event(window):
     table = window.main_if_infos_table

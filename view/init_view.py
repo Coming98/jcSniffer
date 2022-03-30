@@ -28,13 +28,31 @@ def taggle_info_window(window, visible):
     window.packet_items_table.setVisible(not visible)
     window.packet_detail_tab.setVisible(not visible)
 
-################ ↓ Welcome ###########################
 
+################ ↓ Show ###########################
 # packet_items_table
-def init_welcome_packet_items_table(window):
+def init_packet_items_table(window):
     table = window.packet_items_table
     table.verticalHeader().setVisible(False)  # 隐藏列名
     table.horizontalHeader().setStretchLastSection(True)  # 设置最后一列拉伸至最大
+    table.horizontalHeader().setSectionsClickable(False)  # 禁止点击表头
+    table.setSelectionBehavior(QAbstractItemView.SelectRows)  # 只能选择一行
+    table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 不可更改
+    font = QFont('微软雅黑', 14)
+    font.setBold(True)
+    table.horizontalHeader().setFont(font)  # 设置表头字体
+    table.horizontalHeader().setStyleSheet(
+        'QHeaderView::section{background:gray; color:white}')
+    table.setAlternatingRowColors(True)
+    table.setFrameStyle(QFrame.NoFrame)
+    table.setStyleSheet('gridline-color:white;'
+                        'border:0px solid gray')
+    table.itemClicked.connect(window.packet_items_table_clicked)
+
+################ ↑ Show ###########################
+
+
+################ ↓ Welcome ###########################
 
 # main_if_infos_table
 def init_welcome_main_if_infos_table(window):
@@ -119,7 +137,7 @@ def init_welcome(window):
     init_welcome_main_if_infos_table(window)
 
     # packet_items_table
-    init_welcome_packet_items_table(window)
+    init_packet_items_table(window)
 
     # taggle_info_window
     taggle_info_window(window, True)

@@ -14,8 +14,13 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1392, 642)
-        MainWindow.setMinimumSize(QtCore.QSize(1392, 0))
+        MainWindow.resize(1392, 904)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
+        MainWindow.setSizePolicy(sizePolicy)
+        MainWindow.setMinimumSize(QtCore.QSize(0, 0))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -46,7 +51,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.packet_items_table, 6, 0, 1, 2)
         self.main_header_label = QtWidgets.QLabel(self.centralwidget)
         self.main_header_label.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.main_header_label.sizePolicy().hasHeightForWidth())
@@ -65,7 +70,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
         self.main_if_infos_table = QtWidgets.QTableWidget(self.centralwidget)
         self.main_if_infos_table.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.main_if_infos_table.sizePolicy().hasHeightForWidth())
@@ -132,9 +137,9 @@ class Ui_MainWindow(object):
         self.tab_5.setObjectName("tab_5")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.tab_5)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.packet_detail_physical_tree = QtWidgets.QTreeWidget(self.tab_5)
-        self.packet_detail_physical_tree.setObjectName("packet_detail_physical_tree")
-        self.horizontalLayout_5.addWidget(self.packet_detail_physical_tree)
+        self.packet_detail_physical_text = QtWidgets.QTextBrowser(self.tab_5)
+        self.packet_detail_physical_text.setObjectName("packet_detail_physical_text")
+        self.horizontalLayout_5.addWidget(self.packet_detail_physical_text)
         self.packet_detail_tab.addTab(self.tab_5, "")
         self.gridLayout.addWidget(self.packet_detail_tab, 7, 0, 1, 2)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
@@ -142,7 +147,7 @@ class Ui_MainWindow(object):
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_6.addItem(spacerItem1)
         self.main_image_label = QtWidgets.QLabel(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.main_image_label.sizePolicy().hasHeightForWidth())
@@ -222,7 +227,7 @@ class Ui_MainWindow(object):
         self.main_footer_text.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"</style></head><body style=\" font-family:\'SimSun\'; font-size:13.5pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; font-weight:600;\">Github: https://github.com/Coming98/jcSniffer</span></p>\n"
 "<p align=\"right\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'-apple-system\',\'BlinkMacSystemFont\',\'Segoe UI\',\'Helvetica\',\'Arial\',\'sans-serif\',\'Apple Color Emoji\',\'Segoe UI Emoji\'; font-size:12pt; font-weight:600; color:#57606a; background-color:#ffffff;\">© 2022 ComingPro</span></p></body></html>"))
         self.packet_detail_tab.setTabText(self.packet_detail_tab.indexOf(self.tab), _translate("MainWindow", "Application"))
