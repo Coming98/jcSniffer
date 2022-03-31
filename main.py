@@ -17,7 +17,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, QCoreApplication, Qt
 from view.Ui_MainWindow import Ui_MainWindow
 from view import init_view
 from work_flow import analysis_packet, handle_packet_items, show_networks
-from work_flow import config
+from work_flow import config, handle_filter
 from Sniff import SniffThread
 import sys
 from scapy.all import raw, Ether, hexdump
@@ -54,7 +54,8 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.sniffThread.HandleSignal.connect(self.display)
         self.sniffThread.start()
 
-        self.statusBar().showMessage(f"{self.if_name} | 捕获正在进行 ...")
+        # status
+        self.sniffing_flag = 1
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(False)
@@ -63,7 +64,10 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
     def end_sniff(self):
         self.sniffThread.terminate()
-        self.statusBar().showMessage(f"{self.if_name} | 捕获停止")
+        self.statusBar().showMessage(f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | {self.filters_info}")
+        self.current_message = f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | "
+        self.sniffing_flag = 0
+
         # ToolBar
         self.toolBar.actions()[0].setEnabled(True)
         self.toolBar.actions()[1].setEnabled(False)
@@ -91,7 +95,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         handle_packet_items.show_packet_items_table(self)
 
         self.statusBar().showMessage(
-            f"{self.if_name} | 捕获正在进行 ... || 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()}||")
+            f"{self.if_name} | 捕获正在进行 ... | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | {self.filters_info}")
 
     # Events
 
@@ -104,7 +108,8 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         init_view.taggle_info_window(self, False)
 
         # 状态栏信息
-        self.statusBar().showMessage(f"{self.if_name} | 等待捕获开始...")
+        self.statusBar().showMessage(f"{self.if_name} | 等待捕获开始... | {self.filters_info}")
+        self.current_message = f"{self.if_name} | 等待捕获开始... | "
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(True)
@@ -119,11 +124,15 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.if_name = table.item(row, 1).text()
 
         # 状态栏信息
-        self.statusBar().showMessage(f"{self.if_name}")
+        self.statusBar().showMessage(f"{self.if_name} | {self.filters_info}")
+        self.current_message = f"{self.if_name} | "
+
 
     def main_if_infos_table_itemSelectionChanged(self):
         if(not self.main_if_infos_table.currentItem().isSelected()):
-            self.statusBar().showMessage("")
+            self.statusBar().showMessage(f"{self.filters_info}")
+            self.current_message = ""
+
 
     def packet_items_table_clicked(self, item):
         for _ in range(self.packet_detail_tab.count()):
@@ -140,7 +149,9 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.if_name == None
         self.packet_items = []
         self.packet_items_table.setRowCount(0)
-        self.statusBar().showMessage("")
+        self.statusBar().showMessage(f"{self.filters_info}")
+        self.current_message = ""
+
         # self.adjustSize()
 
         # ToolBar
@@ -148,6 +159,23 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.toolBar.actions()[1].setEnabled(False)
         self.toolBar.actions()[2].setEnabled(False)
 
+    def packet_filter_lineedit_returnPressed(self):
+        lineedit = self.packet_filter_lineedit
+        filter_info = self.packet_filter_lineedit.text().strip()
+        if(len(filter_info) == 0 and self.sniffing_flag == 0):
+            self.filters_info = ""
+            self.statusBar().showMessage(self.current_message)
+        else:
+            flag = handle_filter.update_filter(self, filter_info)
+            if(not flag[0]):
+                self.filters_info = flag[1]
+                if(self.sniffing_flag == 0):
+                    self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
+            else: 
+                self.filters = flag[1]
+                self.filters_info = filter_info
+                if(self.sniffing_flag == 0):
+                    self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
 
 if __name__ == "__main__":
     # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)

@@ -49,6 +49,9 @@ def init_packet_items_table(window):
                         'border:0px solid gray')
     table.itemClicked.connect(window.packet_items_table_clicked)
 
+def init_packet_filter_lineedit(window):
+    window.packet_filter_lineedit.returnPressed.connect(window.packet_filter_lineedit_returnPressed)
+
 ################ ↑ Show ###########################
 
 
@@ -139,7 +142,11 @@ def init_welcome(window):
     # packet_items_table
     init_packet_items_table(window)
 
+    # packet_filter_lineedit
+    init_packet_filter_lineedit(window)
+    
     # taggle_info_window
     taggle_info_window(window, True)
+
 
 ################ ↑ Welcome ###########################

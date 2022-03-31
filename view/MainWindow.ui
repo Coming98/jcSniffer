@@ -183,7 +183,7 @@ p, li { white-space: pre-wrap; }
          <widget class="QTreeWidget" name="packet_detail_application_tree">
           <column>
            <property name="text">
-            <string> </string>
+            <string/>
            </property>
           </column>
          </widget>
@@ -267,7 +267,7 @@ p, li { white-space: pre-wrap; }
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QLineEdit" name="lineEdit"/>
+     <widget class="QLineEdit" name="packet_filter_lineedit"/>
     </item>
     <item row="3" column="0">
      <spacer name="verticalSpacer_2">
@@ -338,7 +338,7 @@ p, li { white-space: pre-wrap; }
    <zorder>main_if_infos_table</zorder>
    <zorder>main_header_label</zorder>
    <zorder>main_footer_text</zorder>
-   <zorder>lineEdit</zorder>
+   <zorder>packet_filter_lineedit</zorder>
    <zorder>packet_items_table</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">

@@ -3,18 +3,9 @@ from scapy.all import raw
 def handleTCP(packet, infos, brief):
     tcp_layer = packet['TCP']
     if(brief):
-        if(tcp_layer.dport == 80 or tcp_layer.sport == 80):
+        if(tcp_layer.dport == 80 or tcp_layer.sport == 80 and packet.haslayer('Raw')):
             infos['Protocol'] = 'HTTP'
-            if packet.haslayer('HTTPRequest'):
-                http_method = packet.sprintf("{HTTPRequest:%HTTPRequest.Method%}").strip("'")
-                http_path = packet.sprintf("{HTTPRequest:%HTTPRequest.Path%}").strip("'")
-                http_version = packet.sprintf("{HTTPRequest:%HTTPRequest.Http-Version%}").strip("'")
-                Info = f'{http_method} {http_path} {http_version}'
-            elif packet.haslayer('HTTPResponse'):
-                Info = packet.sprintf("{HTTPResponse:%HTTPResponse.Status-Line%}").strip("'")
-            else:
-                Info = ''
-            infos['Info'] = Info
+            infos['Info'] = tcp_layer.load.split(b"\r\n")[0].decode()
         else:
             infos['Protocol'] = 'TCP'
             flags = [tcp_layer.flags.A, tcp_layer.flags.R, tcp_layer.flags.S, tcp_layer.flags.F, tcp_layer.flags.U, tcp_layer.flags.P]
