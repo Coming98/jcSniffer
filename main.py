@@ -79,7 +79,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
             self.start_time = packet_time
 
         # col. Source, Destinaiton, Protocol, Length, Info
-        packet_infos = analysis_packet.main(packet)
+        packet_infos = analysis_packet.analysis_network(packet, brief=True)
         if(packet_infos == None): return
 
         packet_infos['No.'] = str(packet_number)

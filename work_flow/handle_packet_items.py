@@ -2,6 +2,9 @@
 from PyQt5.QtWidgets import QTableWidgetItem, QTreeWidgetItem
 from scapy.all import hexdump, ifaces
 import time
+import sys
+sys.path.append('./')
+from work_flow import analysis_packet
 
 def show_packet_items_table(window):
     packet_items_table = window.packet_items_table
@@ -28,40 +31,34 @@ def show_packet_detail_tab(window, packet, packet_number):
     # Datalink data
     handle_datalink(window, window.packet_detail_datalink_tree, packet)
 
-    # Network data
-    handle_network(window, window.packet_detail_network_tree, packet)
-
-    # Transport data
-    handle_transport(window, window.packet_detail_transport_tree, packet)
-
-    # Application data
-    handle_application(window, window.packet_detail_application_tree, packet)
+    # Network data - Application data
+    handle_network(window, packet)
 
 def update_infos(target, infos, header=False):
     if(header):
+        # print(infos)
         target.headerItem().setText(0, infos['header'])
     else:
         target.setText(0, infos['header'])
+        target.setToolTip(0, 'Tips')
 
     if('childs' in infos):
         for info in infos['childs']:
             child_item = QTreeWidgetItem(target)
             update_infos(child_item, info)
 
-def handle_application(window, target, packet):
-    window.tab_application.setHidden(True)
+# IP / IPv6 / ARP
+def handle_network(window, packet):
+    infos_list = analysis_packet.analysis_network(packet, brief=False)
 
-def handle_transport(window, target, packet):
-    window.tab_transport.setHidden(True)
+    if(infos_list is not None):
+        tab_list = [window.tab_network, window.tab_transport, window.tab_application]
+        targets = [window.packet_detail_network_tree, window.packet_detail_transport_tree, window.packet_detail_application_tree]
+        for target, tab, infos in zip(targets, tab_list, infos_list):
+            target.clear()
+            update_infos(target, infos, header=True)
+            window.packet_detail_tab.insertTab(0, tab, infos['brief_name'])
 
-def handle_network(window, target, packet):
-    target.clear()
-    # infos = get_network_infos(packet)
-    infos = None
-    if(infos is None):
-        window.tab_network.setHidden(True)
-    else:
-        update_infos(target, packet)
 
 def handle_datalink(window, target, packet):
     target.clear()

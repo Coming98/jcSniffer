@@ -95,11 +95,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.packet_detail_application_tree = QtWidgets.QTreeWidget(self.tab_application)
         self.packet_detail_application_tree.setObjectName("packet_detail_application_tree")
-        item_0 = QtWidgets.QTreeWidgetItem(self.packet_detail_application_tree)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_0 = QtWidgets.QTreeWidgetItem(self.packet_detail_application_tree)
-        item_1 = QtWidgets.QTreeWidgetItem(item_0)
-        item_0 = QtWidgets.QTreeWidgetItem(self.packet_detail_application_tree)
         self.horizontalLayout.addWidget(self.packet_detail_application_tree)
         self.packet_detail_tab.addTab(self.tab_application, "")
         self.tab_transport = QtWidgets.QWidget()
@@ -213,7 +208,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuView.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.packet_detail_tab.setCurrentIndex(5)
+        self.packet_detail_tab.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -237,15 +232,7 @@ class Ui_MainWindow(object):
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; font-weight:600;\">Github: https://github.com/Coming98/jcSniffer</span></p>\n"
 "<p align=\"right\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'-apple-system\',\'BlinkMacSystemFont\',\'Segoe UI\',\'Helvetica\',\'Arial\',\'sans-serif\',\'Apple Color Emoji\',\'Segoe UI Emoji\'; font-size:12pt; font-weight:600; color:#57606a; background-color:#ffffff;\">© 2022 ComingPro</span></p></body></html>"))
-        self.packet_detail_application_tree.headerItem().setText(0, _translate("MainWindow", "Application"))
-        __sortingEnabled = self.packet_detail_application_tree.isSortingEnabled()
-        self.packet_detail_application_tree.setSortingEnabled(False)
-        self.packet_detail_application_tree.topLevelItem(0).setText(0, _translate("MainWindow", "111"))
-        self.packet_detail_application_tree.topLevelItem(0).child(0).setText(0, _translate("MainWindow", "111"))
-        self.packet_detail_application_tree.topLevelItem(1).setText(0, _translate("MainWindow", "222"))
-        self.packet_detail_application_tree.topLevelItem(1).child(0).setText(0, _translate("MainWindow", "222"))
-        self.packet_detail_application_tree.topLevelItem(2).setText(0, _translate("MainWindow", "222"))
-        self.packet_detail_application_tree.setSortingEnabled(__sortingEnabled)
+        self.packet_detail_application_tree.headerItem().setText(0, _translate("MainWindow", " "))
         self.packet_detail_tab.setTabText(self.packet_detail_tab.indexOf(self.tab_application), _translate("MainWindow", "Application"))
         self.packet_detail_tab.setTabText(self.packet_detail_tab.indexOf(self.tab_transport), _translate("MainWindow", "Transport"))
         self.packet_detail_tab.setTabText(self.packet_detail_tab.indexOf(self.tab_network), _translate("MainWindow", "Network"))
