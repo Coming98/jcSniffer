@@ -6,11 +6,12 @@ def init_config(self):
     self.packet_items = [] # 捕获的数据包信息
     self.packets_dict = {} # 捕获的原始数据包
     self.start_time = None # 捕获第一个数据包的时间戳
-
+    self.sniffThread = None
     self.current_message = ""
     self.support_protocol_list = ['HTTP', 'TCP', 'UDP', 'IPV6', 'ARP']
-    self.filters_info = ""
+    self.filter_info = ""
     self.filters = None # 过滤
+    self.rowcount = 0
 
 def save_config(self):
     config = {

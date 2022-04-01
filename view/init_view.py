@@ -30,6 +30,40 @@ def taggle_info_window(window, visible):
 
 
 ################ ↓ Show ###########################
+
+def init_packet_detail_treewidget(window):
+    
+    physical = window.packet_detail_physical_tree
+    datalink = window.packet_detail_datalink_tree
+    network = window.packet_detail_network_tree
+    transport = window.packet_detail_transport_tree
+    application = window.packet_detail_application_tree
+    physical.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
+    datalink.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
+    network.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
+    transport.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
+    application.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
+
+def update_packet_detail_tabs(window):
+    window.packet_detail_hexdata_text.clear()
+    window.packet_detail_physical_tree.clear()
+    window.packet_detail_datalink_tree.clear()
+    window.packet_detail_network_tree.clear()
+    window.packet_detail_transport_tree.clear()
+    window.packet_detail_application_tree.clear()
+    window.packet_detail_physical_tree.headerItem().setText(0, "")
+    window.packet_detail_datalink_tree.headerItem().setText(0, "")
+    window.packet_detail_network_tree.headerItem().setText(0, "")
+    window.packet_detail_transport_tree.headerItem().setText(0, "")
+    window.packet_detail_application_tree.headerItem().setText(0, "")
+    for _ in range(window.packet_detail_tab.count()):
+        window.packet_detail_tab.removeTab(0)
+    
+    tab_list = [window.tab_hexdata, window.tab_physical, window.tab_datalink, window.tab_network, window.tab_transport, window.tab_application]
+    tab_name = ['Hex Data', 'Physical', 'DataLink', 'Network', 'Transport', 'Application']
+    
+    [ window.packet_detail_tab.insertTab(0, tab_list[i], tab_name[i] ) for i in range(len(tab_list))]
+
 # packet_items_table
 def init_packet_items_table(window):
     table = window.packet_items_table
@@ -144,9 +178,38 @@ def init_welcome(window):
 
     # packet_filter_lineedit
     init_packet_filter_lineedit(window)
+
+    # packet_detail_treewidget
+    init_packet_detail_treewidget(window)
     
     # taggle_info_window
     taggle_info_window(window, True)
 
+    update_packet_detail_tabs(window)
+
 
 ################ ↑ Welcome ###########################
+
+def statusBar_update(window):
+    if_name, sniff_status, count_info, filter_info = [None, ] * 4
+
+    if(window.if_name is not None):
+        if_name = window.if_name
+    
+    if(window.sniffThread is not None):
+        sniff_status = "捕获正在进行..." if window.sniffThread.isRunning() else "捕获停止"
+    
+    if(len(window.packet_items) != 0):
+        count_info = f"已捕获: {len(window.packet_items)} · 已显示: {window.rowcount} ({window.rowcount/len(window.packet_items):.2%})"
+    if(window.filter_info != ""):
+        filter_info = window.filter_info
+
+    infos = [item for item in (if_name, sniff_status, count_info, filter_info) if item is not None]
+
+    if(len(infos)):
+        infos = ' | '.join(infos)
+    else:
+        infos = ''
+    
+    window.statusBar().showMessage(infos)
+        

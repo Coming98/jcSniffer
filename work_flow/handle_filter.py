@@ -184,4 +184,3 @@ def update_filter(window, filter):
     print(limit_filters)
     return True, limit_filters
     
-    # update filter and update table

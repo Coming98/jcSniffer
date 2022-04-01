@@ -40,12 +40,6 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         # 欢迎界面 选择网卡
         show_networks.main(self)
 
-        # print(dir(self))
-        
-        # self.adjustSize()
-        # print(self.baseSize())
-
-
     def start_sniff(self):
         self.sniffThread = SniffThread("", self.if_name)
         self.sniffThread.HandleSignal.connect(self.display)
@@ -59,9 +53,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
     def end_sniff(self):
         self.sniffThread.terminate()
         
-        self.statusBar().showMessage(f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | {self.filters_info}")
-        self.current_message = f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | "
-
+        init_view.statusBar_update(self)
         # ToolBar
         self.toolBar.actions()[0].setEnabled(True)
         self.toolBar.actions()[1].setEnabled(False)
@@ -88,9 +80,9 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
         handle_packet_items.show_packet_items_table(self)
 
-        self.statusBar().showMessage(
-            f"{self.if_name} | 捕获正在进行 ... | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | {self.filters_info}")
-
+        # self.statusBar().showMessage(
+        #     f"{self.if_name} | 捕获正在进行 ... | 已捕获: {len(self.packet_items)} · 已显示: {self.rowcount} | {self.filters_info}")
+        init_view.statusBar_update(self)
     # Events
 
     def main_if_infos_table_doubleClicked(self, item):
@@ -101,9 +93,7 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         # 进入捕获界面
         init_view.taggle_info_window(self, False)
 
-        # 状态栏信息
-        self.statusBar().showMessage(f"{self.if_name} | 等待捕获开始... | {self.filters_info}")
-        self.current_message = f"{self.if_name} | 等待捕获开始... | "
+        init_view.statusBar_update(self)
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(True)
@@ -111,21 +101,16 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.toolBar.actions()[2].setEnabled(True)
 
     def main_if_infos_table_clicked(self, item):
-        # print(self.packet_detail_tab.count())
-        # print(dir(self.tab_application.setHidden()))
         table = self.main_if_infos_table
         row = item.row()
         self.if_name = table.item(row, 1).text()
 
-        # 状态栏信息
-        self.statusBar().showMessage(f"{self.if_name} | {self.filters_info}")
-        self.current_message = f"{self.if_name} | "
+        init_view.statusBar_update(self)
 
 
     def main_if_infos_table_itemSelectionChanged(self):
         if(not self.main_if_infos_table.currentItem().isSelected()):
-            self.statusBar().showMessage(f"{self.filters_info}")
-            self.current_message = ""
+            init_view.statusBar_update(self)
 
 
     def packet_items_table_clicked(self, item):
@@ -143,10 +128,12 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.if_name == None
         self.packet_items = []
         self.packet_items_table.setRowCount(0)
-        self.statusBar().showMessage(f"{self.filters_info}")
-        self.current_message = ""
+        init_view.statusBar_update(self)
 
-        # self.adjustSize()
+        self.sniffThread = None
+        self.rowcount = 0
+        init_view.update_packet_detail_tabs(self)
+        init_view.statusBar_update(self)
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(False)
@@ -157,24 +144,24 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         lineedit = self.packet_filter_lineedit
         filter_info = lineedit.text().strip()
         if(len(filter_info) == 0): # 显示所有信息
-            self.filters_info = ""
-            if(self.sniffThread.isRunning() == False):
-                self.statusBar().showMessage(self.current_message)
+            self.filter_info = ""
             self.filters = None
             handle_packet_items.show_packet_items_table_by_filter(self)
+            init_view.statusBar_update(self)
+            lineedit.setStyleSheet("QLineEdit { background-color: white }")
         else:
             flag = handle_filter.update_filter(self, filter_info)
             if(not flag[0]): # 错误过滤，不改变当前状态
-                self.filters_info = flag[1]
-                if(self.sniffThread.isRunning() == False):
-                    self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
+                self.filter_info = flag[1]
+                init_view.statusBar_update(self)
+                lineedit.setStyleSheet("QLineEdit { background-color: #FFAFAF }")
             else:  # 正确过滤，改变显示
                 self.filters = flag[1]
-                self.filters_info = filter_info
-                if(self.sniffThread.isRunning() == False):
-                    self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
+                self.filter_info = filter_info
                 # 更新显示内容
                 handle_packet_items.show_packet_items_table_by_filter(self)
+                init_view.statusBar_update(self)
+                lineedit.setStyleSheet("QLineEdit { background-color: #AFFFAF }")
 
 if __name__ == "__main__":
     # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)

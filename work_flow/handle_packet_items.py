@@ -13,20 +13,24 @@ def show_packet_items_table(window):
     packet_items = window.packet_items
 
     for item in packet_items[row_number:]:
-        if(not check_packet_by_filter(item, window.filters)): continue
         packet_items_table.setRowCount(row_number + 1)
 
         cols = ['No.', 'Time', 'Source', 'Destinaiton', 'Protocol', 'Length', 'Info']
         for index, col in enumerate(cols):
             packet_items_table.setItem(row_number, index, QTableWidgetItem(str(item[col])))
 
+        if(not check_packet_by_filter(item, window.filters)): 
+            packet_items_table.setRowHidden(row_number, True)
+        else:
+            window.rowcount += 1
+
         row_number += 1 
 
 def _single_filter(target, filter, func=None):
     if(len(filter) == 0 or '*' in filter): return True
     else:
-        if(func is not None): target = func(target)
         if(target is None): return False
+        if(func is not None): target = func(target)
         if(target not in filter): return False
         return True
 
@@ -86,6 +90,7 @@ def check_packet_by_filter(packet_item, filters):
         
 
 def show_packet_items_table_by_filter(window):
+    if(window.sniffThread is None): return
     start_flag = False
     if(window.sniffThread.isRunning() == True):
         window.sniffThread.terminate()
@@ -95,12 +100,16 @@ def show_packet_items_table_by_filter(window):
     filters = window.filters
     packet_items = window.packet_items
 
+    show_count = 0
     for row in range(len(packet_items)):
         flag = check_packet_by_filter(packet_items[row], filters)
         if(not flag):
             table.setRowHidden(row, True)
         else:
             table.setRowHidden(row, False)
+            show_count += 1
+    window.rowcount = show_count
+
 
     start_flag and window.sniffThread.start()
     
