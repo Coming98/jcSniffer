@@ -7,11 +7,10 @@ def init_config(self):
     self.packets_dict = {} # 捕获的原始数据包
     self.start_time = None # 捕获第一个数据包的时间戳
 
-    self.sniffing_flag = 0 # 是否正在捕获
     self.current_message = ""
     self.support_protocol_list = ['HTTP', 'TCP', 'UDP', 'IPV6', 'ARP']
-    self.filters = [] # 过滤
     self.filters_info = ""
+    self.filters = None # 过滤
 
 def save_config(self):
     config = {

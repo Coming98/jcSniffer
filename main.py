@@ -47,15 +47,9 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
 
     def start_sniff(self):
-        # 获取 filter 信息
-        pass
-
         self.sniffThread = SniffThread("", self.if_name)
         self.sniffThread.HandleSignal.connect(self.display)
         self.sniffThread.start()
-
-        # status
-        self.sniffing_flag = 1
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(False)
@@ -64,9 +58,9 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
     def end_sniff(self):
         self.sniffThread.terminate()
+        
         self.statusBar().showMessage(f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | {self.filters_info}")
         self.current_message = f"{self.if_name} | 捕获停止 | 已捕获: {len(self.packet_items)} · 已显示: {self.packet_items_table.rowCount()} | "
-        self.sniffing_flag = 0
 
         # ToolBar
         self.toolBar.actions()[0].setEnabled(True)
@@ -161,21 +155,26 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
     def packet_filter_lineedit_returnPressed(self):
         lineedit = self.packet_filter_lineedit
-        filter_info = self.packet_filter_lineedit.text().strip()
-        if(len(filter_info) == 0 and self.sniffing_flag == 0):
+        filter_info = lineedit.text().strip()
+        if(len(filter_info) == 0): # 显示所有信息
             self.filters_info = ""
-            self.statusBar().showMessage(self.current_message)
+            if(self.sniffThread.isRunning() == False):
+                self.statusBar().showMessage(self.current_message)
+            self.filters = None
+            handle_packet_items.show_packet_items_table_by_filter(self)
         else:
             flag = handle_filter.update_filter(self, filter_info)
-            if(not flag[0]):
+            if(not flag[0]): # 错误过滤，不改变当前状态
                 self.filters_info = flag[1]
-                if(self.sniffing_flag == 0):
+                if(self.sniffThread.isRunning() == False):
                     self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
-            else: 
+            else:  # 正确过滤，改变显示
                 self.filters = flag[1]
                 self.filters_info = filter_info
-                if(self.sniffing_flag == 0):
+                if(self.sniffThread.isRunning() == False):
                     self.statusBar().showMessage(self.current_message + f'{self.filters_info} ')
+                # 更新显示内容
+                handle_packet_items.show_packet_items_table_by_filter(self)
 
 if __name__ == "__main__":
     # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)

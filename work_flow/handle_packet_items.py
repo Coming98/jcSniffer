@@ -13,6 +13,7 @@ def show_packet_items_table(window):
     packet_items = window.packet_items
 
     for item in packet_items[row_number:]:
+        if(not check_packet_by_filter(item, window.filters)): continue
         packet_items_table.setRowCount(row_number + 1)
 
         cols = ['No.', 'Time', 'Source', 'Destinaiton', 'Protocol', 'Length', 'Info']
@@ -20,6 +21,90 @@ def show_packet_items_table(window):
             packet_items_table.setItem(row_number, index, QTableWidgetItem(str(item[col])))
 
         row_number += 1 
+
+def _single_filter(target, filter, func=None):
+    if(len(filter) == 0 or '*' in filter): return True
+    else:
+        if(func is not None): target = func(target)
+        if(target is None): return False
+        if(target not in filter): return False
+        return True
+
+def check_packet_by_filter(packet_item, filters):
+    if(filters is None): return True
+    status = []
+    for filter in filters:
+        src, dst, sport, dport, protocol = [ packet_item.get(name) for name in ('src', 'dst', 'sport', 'dport', 'Protocol') ]
+
+        flag = _single_filter(protocol.upper(), filter['protocol'])
+        if(not flag): 
+            status.append(False)
+            continue
+
+        flag = _single_filter(sport, filter['sport'], func=int)
+        if(not flag): 
+            status.append(False)
+            continue
+
+        flag = _single_filter(dport, filter['dport'], func=int)
+        if(not flag): 
+            status.append(False)
+            continue
+
+        flag_s = _single_filter(sport, filter['port'], func=int) # 单条件筛选
+        flag_d = _single_filter(dport, filter['port'], func=int) # 单条件筛选
+
+        if(not (flag_s or flag_d) ):
+            status.append(False)
+            continue
+
+        flag = _single_filter(src, filter['src'])
+        if(not flag): 
+            status.append(False)
+            continue
+
+        flag = _single_filter(dst, filter['dst'])
+        if(not flag): 
+            status.append(False)
+            continue
+
+        flag_s = _single_filter(src, filter['ip']) # 单条件筛选
+        flag_d = _single_filter(dst, filter['ip']) # 单条件筛选
+
+        if(not (flag_s or flag_d) ):
+            status.append(False)
+            continue
+    
+        status.append(True)
+        break
+
+    if(status[-1] == True):
+        return True
+    return False
+
+
+        
+
+def show_packet_items_table_by_filter(window):
+    start_flag = False
+    if(window.sniffThread.isRunning() == True):
+        window.sniffThread.terminate()
+        start_flag = True
+
+    table = window.packet_items_table
+    filters = window.filters
+    packet_items = window.packet_items
+
+    for row in range(len(packet_items)):
+        flag = check_packet_by_filter(packet_items[row], filters)
+        if(not flag):
+            table.setRowHidden(row, True)
+        else:
+            table.setRowHidden(row, False)
+
+    start_flag and window.sniffThread.start()
+    
+
 
 def show_packet_detail_tab(window, packet, packet_number):
     # HEX DATA

@@ -3,9 +3,14 @@ from scapy.all import raw
 def handleTCP(packet, infos, brief):
     tcp_layer = packet['TCP']
     if(brief):
-        if(tcp_layer.dport == 80 or tcp_layer.sport == 80 and packet.haslayer('Raw')):
+        infos['sport'] = tcp_layer.sport
+        infos['dport'] = tcp_layer.dport
+        if((tcp_layer.dport == 80 or tcp_layer.sport == 80) and packet.haslayer('Raw')):
             infos['Protocol'] = 'HTTP'
-            infos['Info'] = tcp_layer.load.split(b"\r\n")[0].decode()
+            try:
+                infos['Info'] = packet['Raw'].load.split(b"\r\n")[0].decode()
+            except:
+                infos['Info'] = packet['Raw'].load.split(b"\r\n")[0]
         else:
             infos['Protocol'] = 'TCP'
             flags = [tcp_layer.flags.A, tcp_layer.flags.R, tcp_layer.flags.S, tcp_layer.flags.F, tcp_layer.flags.U, tcp_layer.flags.P]
@@ -51,6 +56,8 @@ def handleTCP(packet, infos, brief):
 def handleUDP(packet, infos, brief):
     udp_layer = packet['UDP']
     if(brief):
+        infos['sport'] = udp_layer.sport
+        infos['dport'] = udp_layer.dport
         infos['Protocol'] = 'UDP'
         infos['Info'] = f'{udp_layer.sport} -> {udp_layer.dport} length: {udp_layer.len}'
     else:
@@ -138,6 +145,11 @@ def handleIP(packet, brief):
         'Source': packet['IP'].src,
         'Destinaiton': packet['IP'].dst,
         'Length': len(packet),
+        'sport': None,
+        'dport': None,
+        'src': packet['IP'].src,
+        'dst': packet['IP'].dst,
+
     }
 
     protocol = packet['IP'].proto
@@ -187,7 +199,11 @@ def handleARP(packet, brief):
             'Source': arp_layer.psrc,
             'Destinaiton': arp_layer.pdst,
             'Length': len(packet),
-            'Protocol': 'ARP'
+            'Protocol': 'ARP',
+            'sport': None,
+            'dport': None,
+            'src': None,
+            'dst': None,
         }
 
         if(arp_layer.op == 1):
@@ -235,7 +251,9 @@ def handleIpv6(packet, brief):
             'Destinaiton': packet['IPv6'].dst,
             'Length': len(packet),
             'Protocol': 'IPv6',
-            'Info': packet.name
+            'Info': packet.name,
+            'sport': None,
+            'dport': None
         }
 
         infos['Source'] = packet['IPv6'].src
@@ -281,7 +299,9 @@ def handleUnknow(packet, brief):
             'Destinaiton': packet.dst,
             'Length': len(packet),
             'Protocol': hex(packet.type),
-            'Info': packet.name
+            'Info': packet.name,
+            'sport': None,
+            'dport': None
         }
         return infos
     else:
