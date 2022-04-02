@@ -112,16 +112,26 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         if(not self.main_if_infos_table.currentItem().isSelected()):
             init_view.statusBar_update(self)
 
+    def packet_detail_tab_tabBarClicked(self, index):
+        # print(f'{index} / {self.packet_detail_tab.count()}')
+        # print(self.packet_detail_tab.currentWidget())
+        self.packet_detail_tab.setCurrentIndex(index)
+        self.current_tab = self.packet_detail_tab.currentWidget()
+
 
     def packet_items_table_clicked(self, item):
         for _ in range(self.packet_detail_tab.count()):
             self.packet_detail_tab.removeTab(0)
         table = self.packet_items_table
-        table = self.packet_items_table
         row = item.row()
         packet_number = table.item(row, 0).text()
         packet = self.packets_dict[packet_number]
         handle_packet_items.show_packet_detail_tab(self, packet, packet_number)
+        try:
+            self.packet_detail_tab.setCurrentWidget(self.current_tab)
+        except:
+            print("NO")
+            self.packet_detail_tab.setCurrentWidget(self.tab_hexdata)
 
     def quit(self):
         init_view.taggle_info_window(self, True)

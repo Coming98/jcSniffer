@@ -21,7 +21,7 @@ def handleTCP(packet, infos, brief):
         infos_list = infos
         tcp_infos = {
             'brief_name': 'TCP',
-            'header': f'TCP',
+            'header': f'Transmission Control Protocol, Src Port: {tcp_layer.sport}, Dst Port: {tcp_layer.dport}, Seq: {tcp_layer.seq}' + (f', Ack: {tcp_layer.ack}' if tcp_layer.ack != 0 else ''),
             'childs': [
                 {'header': f'Sport: {tcp_layer.sport}'},
                 {'header': f'Dport: {tcp_layer.dport}'},

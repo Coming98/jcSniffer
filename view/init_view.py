@@ -44,6 +44,10 @@ def init_packet_detail_treewidget(window):
     transport.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
     application.setStyleSheet("QTreeWidget::item{margin: 6px; font-size: 16px}")
 
+def init_packet_detail_tabs(window):
+    tab = window.packet_detail_tab
+    tab.tabBarClicked.connect(window.packet_detail_tab_tabBarClicked)
+
 def update_packet_detail_tabs(window):
     window.packet_detail_hexdata_text.clear()
     window.packet_detail_physical_tree.clear()
@@ -184,6 +188,9 @@ def init_welcome(window):
     
     # taggle_info_window
     taggle_info_window(window, True)
+
+    # packet_detail_tabs
+    init_packet_detail_tabs(window)
 
     update_packet_detail_tabs(window)
 

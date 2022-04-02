@@ -12,7 +12,7 @@ def init_config(self):
     self.filter_info = ""
     self.filters = None # 过滤
     self.rowcount = 0
-
+    self.current_tab = None
 def save_config(self):
     config = {
         'if_name': self.if_name
