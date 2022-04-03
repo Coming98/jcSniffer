@@ -5,31 +5,33 @@ def handleTCP(packet, infos, brief):
     if(brief):
         infos['sport'] = tcp_layer.sport
         infos['dport'] = tcp_layer.dport
-        if((tcp_layer.dport == 80 or tcp_layer.sport == 80) and packet.haslayer('Raw')):
-            infos['Protocol'] = 'HTTP'
-            try:
-                infos['Info'] = packet['Raw'].load.split(b"\r\n")[0].decode()
-            except:
-                infos['Info'] = packet['Raw'].load.split(b"\r\n")[0]
-        else:
-            infos['Protocol'] = 'TCP'
-            flags = [tcp_layer.flags.A, tcp_layer.flags.R, tcp_layer.flags.S, tcp_layer.flags.F, tcp_layer.flags.U, tcp_layer.flags.P]
-            msgs = ['ACK', 'RST', 'SYN', 'FIN', 'URG', 'PSH']
-            msg = ', '.join([f'{msgs[i]}' for i, flag in enumerate(flags) if flag])
-            infos['Info'] = f'{tcp_layer.sport} -> {tcp_layer.dport} [{msg}] Seq: {tcp_layer.seq}, ACK: {tcp_layer.ack}, WIN: {tcp_layer.window}'
+        infos['Protocol'] = 'TCP'
+        if(packet.haslayer('Raw')):
+            if(b'HTTP/' in packet['Raw'].load):
+                infos['Protocol'] = 'HTTP'
+                try:
+                    infos['Info'] = packet['Raw'].load.split(b"\r\n")[0].decode()
+                except:
+                    infos['Info'] = packet['Raw'].load.split(b"\r\n")[0]
+                return
+    
+        infos['Protocol'] = 'TCP'
+        flags = [tcp_layer.flags.A, tcp_layer.flags.R, tcp_layer.flags.S, tcp_layer.flags.F, tcp_layer.flags.U, tcp_layer.flags.P]
+        msgs = ['ACK', 'RST', 'SYN', 'FIN', 'URG', 'PSH']
+        msg = ', '.join([f'{msgs[i]}' for i, flag in enumerate(flags) if flag])
+        infos['Info'] = f'{tcp_layer.sport} -> {tcp_layer.dport} [{msg}] Seq: {tcp_layer.seq}, ACK: {tcp_layer.ack}, WIN: {tcp_layer.window}'
     else:
         infos_list = infos
         tcp_infos = {
             'brief_name': 'TCP',
             'header': f'Transmission Control Protocol, Src Port: {tcp_layer.sport}, Dst Port: {tcp_layer.dport}, Seq: {tcp_layer.seq}' + (f', Ack: {tcp_layer.ack}' if tcp_layer.ack != 0 else ''),
             'childs': [
-                {'header': f'Sport: {tcp_layer.sport}'},
-                {'header': f'Dport: {tcp_layer.dport}'},
-                {'header': f'Seq: {tcp_layer.seq}'},
-                {'header': f'Ack: {tcp_layer.ack}'},
-                {'header': f'数据偏移: {tcp_layer.dataofs}'},
-                {'header': f'保留位: {tcp_layer.reserved}'},
-                {'header': f'flags: {tcp_layer.flags}'},
+                {'header': f'Source Port: {tcp_layer.sport}'},
+                {'header': f'Destination Port: {tcp_layer.dport}'},
+                {'header': f'Sequence Number (raw): {tcp_layer.seq}'},
+                {'header': f'Acknowledgment Number (raw): {tcp_layer.ack}'},
+                # {'header': f'数据偏移: {tcp_layer.dataofs}'},
+                # {'header': f'保留位: {tcp_layer.reserved}'},
                 {
                     'header': f'flags: {tcp_layer.flags}',
                     'childs': [
@@ -41,12 +43,19 @@ def handleTCP(packet, infos, brief):
                         {'header': f'PSH: {tcp_layer.flags.P}'},
                     ]
                 },
-                {'header': f'window: {tcp_layer.window}'},
-                {'header': f'chksum: {tcp_layer.chksum}'},
-                {'header': f'紧急指针: {tcp_layer.urgptr}'},
-                {'header': f'options: {tcp_layer.options}'},
+                {'header': f'Window: {tcp_layer.window}'},
+                {'header': f'CheckSum: {hex(tcp_layer.chksum)}'},
+                {'header': f'Urgent Pointer: {tcp_layer.urgptr}'},
+                {
+                    'header': f'options: Count = {len(tcp_layer.options)}',
+                    'childs': []
+                },
             ]
         }
+        for name, value in tcp_layer.options:
+            tcp_infos['childs'][-1]['childs'].append(
+                {'header': f'{name}-Operation ({value})'}
+            )
         infos_list.append(tcp_infos)
 
         if(tcp_layer.dport == 80 or tcp_layer.sport == 80):
@@ -122,11 +131,20 @@ def handleIGMP(packet, infos, brief):
             'brief_name': 'IGMP',
             'header': 'IGMP'
         }
+        infos_list.append(igmp_infos)
 
 def handleNone(packet, infos, brief):
     protocol = packet['IP'].proto
-    infos['Protocol'] = f'{protocol}'
-    infos['Info'] = 'unknow infos...'
+    if(brief):
+        infos['Protocol'] = f'{protocol}'
+        infos['Info'] = 'unknow infos...'
+    else:
+        infos_list = infos
+        unknow_infos = {
+            'brief_name': f'{protocol}',
+            'header': 'unknow infos...'
+        }
+        infos_list.append(unknow_infos)
 
 def handleIProtocol(packet, protocol, infos, brief):
     if(protocol == 6): # TCP

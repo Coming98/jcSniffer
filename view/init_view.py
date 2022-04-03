@@ -86,6 +86,17 @@ def init_packet_items_table(window):
     table.setStyleSheet('gridline-color:white;'
                         'border:0px solid gray')
     table.itemClicked.connect(window.packet_items_table_clicked)
+    table.setColumnWidth(0, 80)
+    table.setColumnWidth(1, 120)
+    table.setColumnWidth(2, 240)
+    table.setColumnWidth(3, 240)
+    table.setColumnWidth(4, 160)
+    table.setColumnWidth(5, 160)
+    # table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+    # table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+    # table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
+    # table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeToContents)
+
 
 def init_packet_filter_lineedit(window):
     window.packet_filter_lineedit.returnPressed.connect(window.packet_filter_lineedit_returnPressed)
@@ -151,6 +162,22 @@ def init_welcome_toolbar(window):
     quitAction.triggered.connect(window.quit)
     window.toolBar.addAction(quitAction)
     quitAction.setDisabled(True)
+
+    # 保存
+    saveAction = QAction(QIcon(os.path.join(ICON_DIR, 'save')),
+                        'Save (Ctrl+S)', window)
+    saveAction.setShortcut('Ctrl+S')
+    saveAction.triggered.connect(window.save)
+    window.toolBar.addAction(saveAction)
+    saveAction.setDisabled(True)
+
+    # 下载
+    downloadAction = QAction(QIcon(os.path.join(ICON_DIR, 'download')),
+                        'Download (Ctrl+D)', window)
+    downloadAction.setShortcut('Ctrl+D')
+    downloadAction.triggered.connect(window.download)
+    window.toolBar.addAction(downloadAction)
+    downloadAction.setDisabled(True)
 
     # print(dir(window.toolBar))
 

@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QTableWidgetItem, QTreeWidgetItem
 from scapy.all import hexdump, ifaces
 import time
 import sys
+from PyQt5.QtGui import QBrush, QColor
 sys.path.append('./')
 from work_flow import analysis_packet
 
@@ -12,12 +13,14 @@ def show_packet_items_table(window):
 
     packet_items = window.packet_items
 
-    for item in packet_items[row_number:]:
+    for item in packet_items[-1:]:
         packet_items_table.setRowCount(row_number + 1)
 
         cols = ['No.', 'Time', 'Source', 'Destinaiton', 'Protocol', 'Length', 'Info']
+        color = window.proto2color.get(str(item['Protocol']).upper(), (255, 255, 255, 255))
         for index, col in enumerate(cols):
             packet_items_table.setItem(row_number, index, QTableWidgetItem(str(item[col])))
+            packet_items_table.item(row_number, index).setBackground(QBrush(QColor(*color)))
 
         if(not check_packet_by_filter(item, window.filters)): 
             packet_items_table.setRowHidden(row_number, True)
