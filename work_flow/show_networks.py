@@ -31,8 +31,6 @@ def get_contents(line, indexes):
 
 def get_if_infos():
     info_lines = str(ifaces).split('\n')
-    # ifaces
-    # print(info_lines)
 
     if_infos = []
     indexes = [info_lines[0].index(col_name) for col_name in info_lines[0].split()]
