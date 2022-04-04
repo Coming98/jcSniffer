@@ -95,18 +95,18 @@ def handleICMP(packet, infos, brief):
             8: 'request'
         }
         type_info = icmp_layer.type if icmp_layer.type not in type_info_dict else type_info_dict[icmp_layer.type]
-        infos['Info'] = f'Echo (ping) {type_info} id: {icmp_layer.id} seq: {icmp_layer.seq}'
+        infos['Info'] = f'Echo (ping) {type_info} id: {hex(icmp_layer.id)} seq: {icmp_layer.seq}'
     else:
         infos_list = infos
         icmp_type = icmp_layer.type
         icmp_type_info = '(Echo (ping) request)' if icmp_type == 8 else ('(Echo (ping) reply)' if icmp_type == 0 else '')
         icmp_infos = {
             'brief_name': 'ICMP',
-            'header': 'ICMP',
+            'header': 'Internet Control Message Protocol',
             'childs': [
                 {'header': f'Type: {icmp_type}, {icmp_type_info}'},
                 {'header': f'Code: {icmp_layer.code}'},
-                {'header': f'Chksum: {icmp_layer.chksum}'},
+                {'header': f'Checksum: {hex(icmp_layer.chksum)}'},
                 {'header': f'id: {icmp_layer.id}'},
                 {'header': f'seq: {icmp_layer.seq}'},
                 {'header': f'ts_ori: {icmp_layer.ts_ori}'},

@@ -17,7 +17,7 @@ from view import init_view
 from work_flow import analysis_packet, handle_packet_items, show_networks
 from work_flow import config, handle_filter
 from Sniff import SniffThread
-from scapy.all import PacketList, wrpcap
+from scapy.all import PacketList, wrpcap, rdpcap
 import re
 import sys
 import os
@@ -40,28 +40,38 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         # 欢迎界面 选择网卡
         show_networks.main(self)
 
+    def open(self):
+        path, filetype = QFileDialog.getOpenFileName(None,
+                            "选择要打开的 pcap 文件",
+                            "./",
+                            "pcap文件(*.cap *.pcap)")
+        if len(path.strip()) == 0:
+            return
+        if not os.path.exists(os.path.dirname(path)): 
+            QtWidgets.QMessageBox.critical(None, "错误", "路径不存在")
+            return
+        self.sniffThread = SniffThread("", self.if_name) # 状态检测
+        init_view.update_welcome_toolbar(self, "openfile")
+        init_view.taggle_info_window(self, "DETAIL")
+        pkts = rdpcap(path)
+        for pkt in pkts:
+            self.display(pkt)
+
+
     def start_sniff(self):
         self.sniffThread = SniffThread("", self.if_name)
         self.sniffThread.HandleSignal.connect(self.display)
         self.sniffThread.start()
 
         # ToolBar
-        self.toolBar.actions()[0].setEnabled(False)
-        self.toolBar.actions()[1].setEnabled(True)
-        self.toolBar.actions()[2].setEnabled(False)
-        self.toolBar.actions()[3].setEnabled(False)
-        self.toolBar.actions()[4].setEnabled(False)
+        init_view.update_welcome_toolbar(self, "start_sniff")
 
     def end_sniff(self):
         self.sniffThread.terminate()
         
         init_view.statusBar_update(self)
         # ToolBar
-        self.toolBar.actions()[0].setEnabled(True)
-        self.toolBar.actions()[1].setEnabled(False)
-        self.toolBar.actions()[2].setEnabled(True)
-        self.toolBar.actions()[3].setEnabled(True)
-        self.toolBar.actions()[4].setEnabled(False)
+        init_view.update_welcome_toolbar(self, "end_sniff")
 
     def display(self, packet):
         # col. No.
@@ -78,7 +88,6 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
 
         packet_infos['No.'] = str(packet_number)
         packet_infos['Time'] = f'{packet_time - self.start_time:.6f}'
-        # self.packets_dict[packet_infos['No.']] = packet
         self.packets.append(packet)
 
         self.packet_items.append(packet_infos)
@@ -90,13 +99,13 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         init_view.statusBar_update(self)
 
     def quit(self):
-        init_view.taggle_info_window(self, True)
-        self.if_name == None
+        init_view.taggle_info_window(self, "WELCOME")
+        self.if_name = None
         self.packet_items = []
         self.packets = []
-        # self.packets_dict = {}
         self.packet_items_table.setRowCount(0)
         init_view.statusBar_update(self)
+        self.start_time = None
 
         self.sniffThread = None
         self.rowcount = 0
@@ -104,18 +113,16 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         init_view.statusBar_update(self)
 
         # ToolBar
-        self.toolBar.actions()[0].setEnabled(False)
-        self.toolBar.actions()[1].setEnabled(False)
-        self.toolBar.actions()[2].setEnabled(False)
-        self.toolBar.actions()[3].setEnabled(False)
-        self.toolBar.actions()[4].setEnabled(False)
+        init_view.update_welcome_toolbar(self, "quit")
 
     def save(self):
         path, filetype = QFileDialog.getSaveFileName(None,
                             "选择保存路径",
                             "./",
                             "pcap文件(*.cap);;全部(*)")
-        if len(path.strip()) == 0 or not os.path.exists(os.path.dirname(path)): 
+        if len(path.strip()) == 0:
+            return
+        if not os.path.exists(os.path.dirname(path)): 
             QtWidgets.QMessageBox.critical(None, "错误", "路径不存在")
         else:
             packets = PacketList(self.packets)
@@ -132,51 +139,82 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         
         packets = self.packets
         target_infos = (None, None, None)
-        image_load = b""
-        image_load_seq = []
-        for i, packet in enumerate(packets[number-1:], number):
-            if(not (packet.haslayer('IP') and packet['IP'].src == src and packet['IP'].dst == dst)): continue
-            # print("GET Target", i)
-            if packet.haslayer('Raw'):
-                load = packet.load
-                ack = packet.ack
-                seq = packet.seq
-                try:
-                    if(b'200 OK' in load):
-                        # print("GET Target 200 OK")
-                        meta_type, length = re.search(r'Content-type: (.*?)\r\n.*?Content-Length: (.*?)\r\n', load.decode()).groups()
-                        file_type = meta_type.split('/')[-1]
-                        length = int(length)
-                        if(target_infos[0] is None): target_infos = (ack, file_type, length)
-                        elif(target_infos[0] == ack):
-                            pass
-                            # print("packet repeat")
-                        else:
-                            print("More resources!!!")
-                            return
-                    elif ack == target_infos[0] and seq not in image_load_seq:
-                        image_load += load
-                        image_load_seq.append(seq)
-                        if(load.find(b'\xff\xd9') != -1):
-                            break
-                except:
-                    print("Wrong Image")
-                    return
-        if(target_infos[0] is not None):
-            # print("Success")
-            path, filetype = QFileDialog.getSaveFileName(None,
-                            "选择保存路径",
-                            f"./{name}",
-                            "jpeg文件(*.jpg);;全部(*)")
-            if len(path.strip()) == 0 or not os.path.exists(os.path.dirname(path)): 
-                QtWidgets.QMessageBox.critical(None, "错误", "路径不存在")
-            else:
-                with open(path, 'wb') as f:
-                    f.write(image_load)
-                QtWidgets.QMessageBox.information(None,"Success", "保存成功")
-        else:
-            QtWidgets.QMessageBox.critical(None, "错误", "保存失败，请等待功能更新，重试也没用哈~")
+
+        ################## UPDATE
+        file_load = b""
+
+        target_infos = handle_packet_items.get_download_target_infos(packets[number-1:], src, dst)
+        if(target_infos[0] is None):
+            print("不完整的流")
             return
+        
+        file_load = handle_packet_items.get_download_file_load(packets[number-1:], target_infos, src, dst)
+        if(file_load is None):
+            print("未能正确识别流的结尾: ", name)
+            return
+        print("Success")
+        path, filetype = QFileDialog.getSaveFileName(None,
+                        "选择保存路径",
+                        f"./{name}",
+                        f"*.{target_infos[1]}")
+        if len(path.strip()) == 0: return
+        if not os.path.exists(os.path.dirname(path)): 
+            QtWidgets.QMessageBox.critical(None, "错误", "路径不存在")
+            return
+
+        with open(path, 'wb') as f:
+            f.write(file_load)
+        QtWidgets.QMessageBox.information(None,"Success", "保存成功")
+
+        # image_load_seq = []
+        # image_load = b""
+        # for i, packet in enumerate(packets[number-1:], number):
+        #     if(not (packet.haslayer('IP') and packet['IP'].src == src and packet['IP'].dst == dst)): continue
+        #     # print("GET Target", i)
+        #     if packet.haslayer('Raw'):
+        #         load = packet.load
+        #         ack = packet.ack
+        #         seq = packet.seq
+        #         # try:
+        #         if(b'200 OK' in load):
+        #             # print("GET Target 200 OK")
+        #             meta_type, length = re.search(r'Content-type: (.*?)\r\n.*?Content-Length: (.*?)\r\n', load.decode()).groups()
+        #             file_type = meta_type.split('/')[-1]
+        #             length = int(length)
+        #             if(target_infos[0] is None): target_infos = (ack, file_type, length)
+        #             elif(target_infos[0] == ack):
+        #                 pass
+        #                 # print("packet repeat")
+        #             else:
+        #                 print("More resources!!!")
+        #                 return
+        #         elif ack == target_infos[0] and seq not in image_load_seq:
+        #             image_load += load
+        #             image_load_seq.append(seq)
+        #             if(load.find(b'\xff\xd9') != -1):
+        #                 break
+        #         # except:
+        #         #     print("Wrong Image")
+        #         #     return
+        # if(target_infos[0] is not None):
+        #     print(len(image_load))
+        #     print(target_infos[2])
+        #     # print("Success")
+        #     path, filetype = QFileDialog.getSaveFileName(None,
+        #                     "选择保存路径",
+        #                     f"./{name}",
+        #                     "全部(*)")
+        #     if len(path.strip()) == 0:
+        #         return
+        #     if not os.path.exists(os.path.dirname(path)): 
+        #         QtWidgets.QMessageBox.critical(None, "错误", "路径不存在")
+        #     else:
+        #         with open(path, 'wb') as f:
+        #             f.write(image_load)
+        #         QtWidgets.QMessageBox.information(None,"Success", "保存成功")
+        # else:
+        #     QtWidgets.QMessageBox.critical(None, "错误", "保存失败，请等待功能更新，重试也没用哈~")
+        #     return
 
     # Events
 
@@ -186,15 +224,12 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         self.if_name = table.item(row, 1).text()
 
         # 进入捕获界面
-        init_view.taggle_info_window(self, False)
+        init_view.taggle_info_window(self, "DETAIL")
 
         init_view.statusBar_update(self)
 
         # ToolBar
-        self.toolBar.actions()[0].setEnabled(True)
-        self.toolBar.actions()[1].setEnabled(False)
-        self.toolBar.actions()[2].setEnabled(True)
-        self.toolBar.actions()[2].setEnabled(False)
+        init_view.update_welcome_toolbar(self, "main_if_infos_table_doubleClicked")
 
     def main_if_infos_table_clicked(self, item):
         table = self.main_if_infos_table
@@ -208,8 +243,6 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
             init_view.statusBar_update(self)
 
     def packet_detail_tab_tabBarClicked(self, index):
-        # print(f'{index} / {self.packet_detail_tab.count()}')
-        # print(self.packet_detail_tab.currentWidget())
         self.packet_detail_tab.setCurrentIndex(index)
         self.current_tab = self.packet_detail_tab.currentWidget()
 
@@ -219,32 +252,18 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
         table = self.packet_items_table
         row = item.row()
         packet_number = table.item(row, 0).text()
-        # packet = self.packets_dict[packet_number]
         packet = self.packets[int(packet_number)-1]
         handle_packet_items.show_packet_detail_tab(self, packet, packet_number)
         try:
             self.packet_detail_tab.setCurrentWidget(self.current_tab)
         except:
             self.packet_detail_tab.setCurrentWidget(self.tab_hexdata)
-        
+
         source = table.item(row, 2).text()
         destination = table.item(row, 3).text()
         protocol = table.item(row, 4).text()
         info = table.item(row, 6).text()
-        res = re.search(r'GET(.*?)jp[e]?g', info)
-        if(protocol == 'HTTP' and res):
-            self.download_name = res.group(1).split('/')[-1] + 'jpg'
-            self.download_src = destination
-            self.download_dst = source
-            self.download_begin_number = int(packet_number) + 1
-            self.toolBar.actions()[4].setEnabled(True)
-        else:
-            self.download_name = None
-            self.download_src = None
-            self.download_dst = None
-            self.download_begin_number = None
-            self.toolBar.actions()[4].setEnabled(False)
-
+        handle_packet_items.check_download(self, packet_number, (source, destination, protocol, info))
 
     def packet_filter_lineedit_returnPressed(self):
         lineedit = self.packet_filter_lineedit
@@ -270,7 +289,6 @@ class JCSnifferWindow(Ui_MainWindow, QMainWindow):
                 lineedit.setStyleSheet("QLineEdit { background-color: #AFFFAF }")
 
 if __name__ == "__main__":
-    # QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QtWidgets.QApplication(sys.argv)
     snifferWindow = JCSnifferWindow()
     snifferWindow.show()

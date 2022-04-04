@@ -18,15 +18,17 @@ ICON_DIR = './resource/icon'
 MAIN_IMAGE_PATH = './resource/images/main.png'
 
 
-def taggle_info_window(window, visible):
+def taggle_info_window(window, state_info):
 
-    window.main_image_label.setVisible(visible)
-    window.main_header_label.setVisible(visible)
-    window.main_if_infos_table.setVisible(visible)
-    window.main_footer_text.setVisible(visible)
+    flag = True if state_info.upper() == 'WELCOME' else False
 
-    window.packet_items_table.setVisible(not visible)
-    window.packet_detail_tab.setVisible(not visible)
+    window.main_image_label.setVisible(flag)
+    window.main_header_label.setVisible(flag)
+    window.main_if_infos_table.setVisible(flag)
+    window.main_footer_text.setVisible(flag)
+
+    window.packet_items_table.setVisible(not flag)
+    window.packet_detail_tab.setVisible(not flag)
 
 
 ################ ↓ Show ###########################
@@ -138,6 +140,14 @@ def init_welcome_toolbar(window):
     window.toolBar.setStyleSheet(
         "QToolBar{spacing:16px;padding-left:12px;}")  # 间距
 
+    # 打开按钮
+    openAction = QAction(
+        QIcon(os.path.join(ICON_DIR, 'open')), 'Open (Ctrl+O)', window)
+    openAction.setShortcut('Ctrl+O')
+    openAction.triggered.connect(window.open)
+    window.toolBar.addAction(openAction)
+    openAction.setDisabled(False)
+
     # 开始按钮
     startAction = QAction(
         QIcon(os.path.join(ICON_DIR, 'start')), 'Start (Ctrl+B)', window)
@@ -179,7 +189,22 @@ def init_welcome_toolbar(window):
     window.toolBar.addAction(downloadAction)
     downloadAction.setDisabled(True)
 
-    # print(dir(window.toolBar))
+def update_welcome_toolbar(window, state_name):
+    # 打开, 开始, 暂停, 关闭, 保存, 下载流
+    status = {
+        'openfile': [False, False, False, True, True, True],
+        'main_if_infos_table_doubleClicked': [False, True, False, True, False, False],
+        'start_sniff': [False, False, True, False, False, False],
+        'end_sniff': [False, True, False, True, True, None],
+        'quit': [True, False, False, False, False, False],
+        'downloadable': [None, None, None, None, None, True],
+        'undownloadable': [None, None, None, None, None, False],
+    }
+
+    for i, state in enumerate(status[state_name]):
+        if(state is None): continue
+        window.toolBar.actions()[i].setEnabled(state)
+
 
 # MainWindow
 def init_welcome_mainwindow(window):
@@ -191,6 +216,8 @@ def init_welcome_mainwindow(window):
 
 
 def init_welcome(window):
+
+    window.setWindowIcon(QIcon('./resource/icon/jcSniffer'))
 
     # MainWindow
     init_welcome_mainwindow(window)
@@ -214,12 +241,15 @@ def init_welcome(window):
     init_packet_detail_treewidget(window)
     
     # taggle_info_window
-    taggle_info_window(window, True)
+    taggle_info_window(window, "WELCOME")
 
     # packet_detail_tabs
     init_packet_detail_tabs(window)
 
     update_packet_detail_tabs(window)
+
+    window.showMaximized()
+
 
 
 ################ ↑ Welcome ###########################

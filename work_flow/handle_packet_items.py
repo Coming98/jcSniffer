@@ -6,6 +6,57 @@ import sys
 from PyQt5.QtGui import QBrush, QColor
 sys.path.append('./')
 from work_flow import analysis_packet
+from view import init_view
+import re
+
+def get_download_file_load(pkts, target_infos, src, dst):
+    target_infos
+    file_load = b""
+    file_load_seq = []
+    for pkt in pkts:
+        if(not (pkt.haslayer('Raw') and pkt.haslayer('IP') and pkt['IP'].src == src and pkt['IP'].dst == dst)): continue
+        load = pkt.load
+        ack = pkt.ack
+        seq = pkt.seq
+        if b'200 OK' not in load and ack == target_infos[0] and seq not in file_load_seq:
+            file_load += load
+            file_load_seq.append(seq)
+            if(len(file_load) == target_infos[2]):
+                return file_load
+            if(len(file_load) > target_infos[2]):
+                print("数据过长")
+                return None
+    print("数据不够")
+    return None
+    
+def get_download_target_infos(pkts, src, dst):
+    for pkt in pkts:
+        if(not (pkt.haslayer('Raw') and pkt.haslayer('IP') and pkt['IP'].src == src and pkt['IP'].dst == dst)): continue
+        load = pkt.load
+        ack = pkt.ack
+        if(b'200 OK' not in load): continue
+        meta_type, length = re.search(r'Content-type: (.*?)\r\n.*?Content-Length: (.*?)\r\n', load.decode()).groups()
+        file_type = meta_type.split('/')[-1]
+        length = int(length)
+        return (ack, file_type, length)
+    return (None, )
+def check_download(window, packet_number, packet_infos):
+    (source, destination, protocol, info) = packet_infos
+    # res = re.search(r'GET(.*?)jp[e]?g', info)
+    res = re.search(r'GET (.*?) HTTP/1.[01]', info)
+    if(protocol == 'HTTP' and res):
+        window.download_name = res.group(1).split('/')[-1]
+        window.download_src = destination
+        window.download_dst = source
+        window.download_begin_number = int(packet_number) + 1
+        init_view.update_welcome_toolbar(window, "downloadable")
+        print("target", window.download_name)
+    else:
+        window.download_name = None
+        window.download_src = None
+        window.download_dst = None
+        window.download_begin_number = None
+        init_view.update_welcome_toolbar(window, "undownloadable")
 
 def show_packet_items_table(window):
     packet_items_table = window.packet_items_table
@@ -175,11 +226,9 @@ def handle_physical(window, target, packet, packet_number):
     length = len(packet)
     arrival_timestamp = packet.time
     arrival_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(packet.time))
-    interface = ifaces.dev_from_name(window.if_name)
-    infos = {
-        'header': f'Frame {packet_number}: {length} bytes on wire ({length*8} bits), captured on interface {interface.network_name}',
-        'childs' : [
-            {
+    if(window.if_name is not None):
+        interface = ifaces.dev_from_name(window.if_name)
+        interface_detail = {
                 'header': f'Interface id: {interface.index} ({interface.network_name})',
                 'childs': [
                     {'header': f'Interface id: {interface.index}'},
@@ -189,7 +238,15 @@ def handle_physical(window, target, packet, packet_number):
                     {'header': f'Interface ipv4: {interface.ip}'},
                     {'header': f'Interface ipv6: {", ".join(interface.ips[6])}'},
                 ]
-            }, 
+            }
+    else:
+        interface_detail = {
+                'header': f'External unknown Interface',
+            }
+    infos = {
+        'header': f'Frame {packet_number}: {length} bytes on wire ({length*8} bits), captured on' + f'interface {interface.network_name}' if window.if_name is not None else 'External unknown Interface',
+        'childs' : [
+            interface_detail, 
             {'header': f'Arrival time: {arrival_time}'},
             {'header': f'Time since reference or first frame: {arrival_timestamp - window.start_time:.3f} seconds'},
             {'header': f'Frame number: {packet_number}'},
