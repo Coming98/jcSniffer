@@ -112,7 +112,7 @@ def handle_filter_chain(window, filter, limit_dict):
         limit_dict['dport'].extend(dport)
         limit_dict['protocol'].extend(protocol)
     elif('<' in filter):
-        flag = process_filter_chain(window, filter, split='>')
+        flag = process_filter_chain(window, filter, split='<')
         if(flag[0] == False): return flag
         dip, dport, protocol, sip, sport = flag[1]
         limit_dict['src'].extend(sip)
@@ -146,7 +146,7 @@ def handle_filter_single(window, filter, limit_dict):
         return False, f'Wrong input: {cmd}'
     return True, None
 def handle_filter_item(window, filter, limit_dict):
-    if('<>' in filter or '>' in filter or '>' in filter):
+    if('<>' in filter or '>' in filter or '<' in filter):
         return handle_filter_chain(window, filter, limit_dict)
     else:
         return handle_filter_single(window, filter, limit_dict)
