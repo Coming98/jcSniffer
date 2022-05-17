@@ -86,6 +86,7 @@ def handleUDP(packet, infos, brief):
                 {'header': f'UDP Payload: {packet["Raw"].load}'}
             )
         infos_list.append(udp_infos)
+
 def handleICMP(packet, infos, brief):
     icmp_layer = packet['ICMP']
     if(brief):
